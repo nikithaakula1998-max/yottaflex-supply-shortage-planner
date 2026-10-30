@@ -1,74 +1,234 @@
 # AI Prompt History — YottaFlex Supply Shortage Planner
 
-## AI Tool Used
-ChatGPT (OpenAI)
+## 1. AI Tool Used
 
-## Development Period
-October 2026
+**Tool:** ChatGPT (OpenAI)
 
-## Purpose
-AI assistance was used to understand the challenge requirements, plan the implementation, generate and debug Python code, create validation scenarios, write tests, and improve project documentation.
+**Development period:** October 2026
 
-## Summary of AI-Assisted Work
+**Project:** YottaFlex Supply Shortage Planner
 
-### 1. Synthetic Supply-Chain Data Generation
-**Topics discussed:** Generating SKU, location, supplier, forecast demand, inventory, purchase order, and shortage records.
+**Purpose:** ChatGPT was used as a development assistant to understand requirements, plan the implementation, draft and debug Python code, create tests, review terminal output, and prepare documentation.
 
-**Work performed:** Developed and tested a deterministic synthetic-data generator.
+All generated code and suggested commands were reviewed or executed locally. AI-generated suggestions were not treated as automatically correct.
 
-### 2. Large-Scale Demand Generation
-**Topics discussed:** Generating 3,000 SKUs × 50 locations × 52 weeks without excessive memory usage.
+## 2. AI-Assisted Development Activities
 
-**Work performed:** Implemented a streaming approach for generating 7,800,000 forecast-demand records.
+### 2.1 Synthetic Data Generation
 
-### 3. Supplier and Mitigation Validation
-**Topics discussed:** Supplier lead times, capacity constraints, and feasibility of proposed shortage mitigations.
+**Task:** Create a synthetic supply-chain dataset with connected business entities.
 
-**Work performed:** Implemented initial supplier validation and feasibility checks. Full mitigation validation remains incomplete.
+**Implementation:**
+- Generated SKU, location, supplier, supplier-capacity, lead-time, forecast-demand, inventory, and purchase-order records.
+- Used consistent identifiers to connect related tables.
+- Added deterministic random generation using seed `20261022`.
+- Generated shortage and mitigation-candidate records.
 
-### 4. Production Planning and BOM
-**Topics discussed:** Creating production proposals, BOM relationships, and component availability checks.
+**Verification:** Executed the main generator on a small dataset and checked its generated CSV files and manifest.
 
-**Work performed:** Implemented production proposals, BOM generation, snapshot validation, and cumulative component-stock validation.
+### 2.2 Large-Scale Forecast Generation
 
-### 5. Anomaly Generation and Detection
-**Topics discussed:** Duplicate inbound orders, unapproved substitutions, supplier capacity violations, lead-time violations, and UOM mismatches.
+**Task:** Generate demand records for 3,000 SKUs across 50 locations and 52 weeks without holding the entire dataset in memory.
 
-**Work performed:** Generated five controlled anomaly scenarios and implemented scenario-specific validation.
+**Implementation:** Developed a streaming forecast-demand generator.
 
-### 6. Automated Testing
-**Topics discussed:** Testing deterministic generation, inventory reconciliation, supplier violations, and anomaly detection.
+**Verification:** Generated 7,800,000 forecast-demand rows in a separate scale test.
 
-**Work performed:** Created and executed five automated tests using Python unittest. All five passed in the latest local run.
+**Limitation:** This was a forecast-demand generation test, not a successful full-scale end-to-end planning run.
 
-### 7. Debugging and GitHub
-**Topics discussed:** Python module errors, missing files, Git commands, repository updates, and project documentation.
+### 2.3 Shortage Calculation
 
-**Work performed:** Resolved module-location problems, restored the main generator after an accidental edit, and committed verified changes to GitHub.
+**Task:** Identify projected inventory shortages using opening inventory, incoming purchase orders, and forecast demand.
 
-### 8. Documentation
-**Topics discussed:** README instructions, project limitations, reproducibility, and AI disclosure.
+**Implementation:**
+- Calculated projected inventory balances by SKU, location, and week.
+- Generated shortage records when projected balances became negative.
+- Assigned shortage-priority scores.
+- Generated unverified mitigation candidates.
 
-**Work performed:** Updated README.md to describe implemented features and remaining limitations.
+**Verification:** Executed inventory reconciliation tests.
 
-## Verification Performed
+**Limitation:** Mitigation candidates are not guaranteed to be executable.
 
-- Ran Python automated tests successfully.
-- Executed the cumulative BOM validator on 1,200 production proposals.
-- Generated and validated five controlled anomaly scenarios.
-- Verified that generated anomaly records did not overwrite baseline files.
-- Committed code and documentation to GitHub.
+### 2.4 Bill of Materials (BOM)
 
-## Known Limitations
+**Task:** Model component relationships and evaluate material availability for proposed production.
 
-The implementation remains partial. Full-scale end-to-end generation, complete mitigation feasibility, comprehensive data validation, and some requested export formats have not been fully implemented.
+**Implementation:**
+- Generated synthetic BOM relationships.
+- Created proposed production-plan rows.
+- Implemented snapshot BOM checks.
+- Added a cumulative validator that reserves initial component inventory across successive production proposals.
 
-## Exact Prompt Record
+**Verification:**
+- Checked 1,200 production proposals.
+- Reported 744 `COMPONENT_SHORTAGE` results.
+- Reported 216 `COMPONENT_STOCK_AVAILABLE` results.
+- Reported 240 `NO_ACTIVE_BOM` results.
 
-This document is a summary, **not a complete verbatim prompt transcript**.
+**Limitations:** Cumulative checks use initial component stock only and do not fully model replenishment, production capacity, or all component demand.
 
-Before submission, add the original prompts you actually submitted, with their dates and the AI tool used. Do not invent or reconstruct exact quotations from memory. Remove personal information and confidential challenge content where necessary.
+### 2.5 Supplier Feasibility
 
-## AI Assistance Disclosure
+**Task:** Evaluate supplier constraints before treating purchase-order quantities as feasible inbound supply.
 
-ChatGPT assisted with implementation ideas, code drafts, debugging, tests, and documentation. Generated suggestions were executed and checked locally. Passing tests demonstrate the checked scenarios only and do not establish full compliance with every challenge requirement.
+**Implementation:**
+- Added supplier lead-time and capacity validation.
+- Created a feasible shortage-planning report.
+- Compared original projected balances with balances calculated using feasible inbound supply.
+
+**Verification:** Tested a deliberately invalid purchase order in a separate copy of the dataset.
+
+### 2.6 Controlled Anomaly Scenarios
+
+**Task:** Create synthetic anomalies with known expected decisions.
+
+**Scenarios:**
+1. `INBOUND_DOUBLE_COUNT`
+2. `UNAPPROVED_SUBSTITUTE`
+3. `SUPPLIER_CAPACITY_EXCEEDED`
+4. `LEAD_TIME_IGNORED`
+5. `UOM_MISMATCH`
+
+**Implementation:** Created separate anomaly-generation and anomaly-validation modules.
+
+**Verification:** All five controlled scenarios matched their expected `FLAG_FOR_REVIEW` decisions.
+
+**Limitation:** These are controlled test cases, not proof of comprehensive anomaly detection across arbitrary supply-chain datasets.
+
+### 2.7 Automated Testing
+
+**Task:** Test important data-generation and validation behavior.
+
+**Implementation:** Used Python's `unittest` framework.
+
+**Verified tests:**
+- `test_five_anomaly_scenarios`
+- `test_balance_reconciles`
+- `test_repeatable`
+- `test_lead_time_violation`
+- `test_supplier_capacity_violation`
+
+**Latest verified result:**
+
+`Ran 5 tests in 0.112s — OK`
+
+### 2.8 Debugging and Version Control
+
+**Task:** Resolve local Python execution issues and maintain a working GitHub repository.
+
+**Work performed:**
+- Reviewed terminal errors and module-execution commands.
+- Restored the main generator after an accidental edit.
+- Verified that the working `src/main.py` matched the committed version.
+- Used Git to commit and push tested code and documentation.
+- Preserved local backup files without adding them to the repository.
+
+### 2.9 Documentation
+
+**Task:** Explain the project, setup instructions, tested features, and known limitations.
+
+**Work performed:**
+- Updated `README.md`.
+- Documented the supplier-constraint experiment.
+- Recorded AI assistance and verification steps.
+- Clearly identified incomplete challenge requirements.
+
+## 3. Supplier Constraint Experiment
+
+A controlled negative test was performed on a copy of the generated dataset.
+
+**Test setup:**
+- Original purchase-order quantity: 72 units
+- Modified purchase-order quantity: 1,000,000 units
+- Orders checked: 100
+- Validation issues detected: 1
+- Planning rows evaluated: 1,200
+- Planning rows with changed projected balances: 5
+
+**Affected SKU:** `SKU-000025`
+
+**Affected location:** `LOC-0004`
+
+| Week | Original Projected Balance | Feasible Projected Balance | Feasible Shortage |
+|---|---:|---:|---:|
+| 2026W04 | 999944 | -56 | 56 |
+| 2026W05 | 999901 | -99 | 99 |
+| 2026W06 | 999873 | -127 | 127 |
+| 2026W07 | 999848 | -152 | 152 |
+| 2026W08 | 999823 | -177 | 177 |
+
+**Conclusion:** The planner detected an invalid supplier order and excluded its quantity from the feasible supply calculation, changing five projected inventory balances.
+
+This demonstrates a specific supplier-constraint behavior, not complete planning feasibility.
+
+## 4. Verbatim Prompt Record — Available Messages
+
+The following user messages are reproduced from the development conversation available when this document was prepared.
+
+**AI tool:** ChatGPT (OpenAI)
+
+**Context:** GitHub verification and AI prompt-history documentation, October 2026.
+
+### Prompt 1
+
+> can ylu directy cannot give me as i am using friends chat gpt because her is plus so i am using hers
+
+**Purpose:** Asked whether the AI assistance document could be prepared directly without exporting another person's ChatGPT account history.
+
+**Result:** ChatGPT explained the distinction between an assistance summary and an exact prompt transcript.
+
+### Prompt 2
+
+> yes
+
+**Purpose:** Confirmed the request to prepare a copy-ready prompt-history document.
+
+**Result:** ChatGPT prepared this structured document.
+
+**Historical prompt limitation:** Earlier development requests for data generation, BOM modeling, supplier validation, and testing are summarized in Section 2. Their original verbatim wording and individual timestamps are not available in this record. They have not been fabricated or presented as exact quotations.
+
+## 5. Commands and Verification Evidence
+
+The following commands were used during local development and verification:
+
+```powershell
+py -m src.main --out outputs/final_verification
+py -m src.production_planner --input outputs/final_verification
+py -m src.bom_generator --input outputs/final_verification
+py -m src.bom_validator --input outputs/final_verification
+py -m src.cumulative_bom_validator --input outputs/final_verification
+py -m src.feasible_planner --input outputs/final_verification
+py -m src.anomaly_generator --input outputs/my_first_run
+py -m src.anomaly_validator --input outputs/my_first_run
+py -m src.feasible_planner --input outputs/supplier_constraint_test
+py -m unittest discover -s tests -v
+```
+
+**GitHub repository:**
+
+https://github.com/nikithaakula1998-max/yottaflex-supply-shortage-planner
+
+**Latest verified pushed commit at the time of writing:** `fe88cac`
+
+## 6. Known Limitations
+
+This project remains a partial implementation.
+
+- Full-scale end-to-end generation and planning have not been completed.
+- Large-scale streaming was demonstrated for forecast demand only.
+- Supplier feasibility validation is limited.
+- Production proposals are not fully validated for all real-world constraints.
+- Mitigation feasibility and cost-versus-service optimization remain incomplete.
+- Comprehensive data validation and some requested export formats remain incomplete.
+- The complete verbatim history of earlier AI prompts is unavailable.
+
+## 7. AI Assistance Disclosure
+
+ChatGPT assisted with technical explanations, implementation planning, code drafts, debugging, automated testing, command-line guidance, and documentation.
+
+The developer executed commands locally, inspected generated results, and committed changes to GitHub.
+
+Passing tests demonstrate the behavior of the tested scenarios only. They do not establish full compliance with all challenge requirements.
+
+This document records the available evidence accurately and distinguishes verified work from incomplete functionality and unavailable historical prompts.
