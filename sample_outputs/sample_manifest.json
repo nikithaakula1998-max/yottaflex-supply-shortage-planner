@@ -1,0 +1,22 @@
+{
+  "source": "outputs\\streaming_full_02",
+  "sampling_method": "first_rows",
+  "maximum_rows_per_file": 100,
+  "files": {
+    "sku.csv": 100,
+    "location.csv": 50,
+    "supplier.csv": 100,
+    "inventory.csv": 100,
+    "forecast_demand.csv": 100,
+    "purchase_order.csv": 100,
+    "shortage.csv": 100,
+    "mitigation_option.csv": 100,
+    "feasible_shortage_plan.csv": 100,
+    "supplier_validation_report.csv": 0,
+    "cumulative_bom_report.csv": 100,
+    "mitigation_feasibility_report.csv": 100,
+    "data_quality_report.csv": 0,
+    "ground_truth.csv": 5
+  },
+  "note": "These are small previews, not complete datasets. They should not be used to calculate full-scale totals."
+}

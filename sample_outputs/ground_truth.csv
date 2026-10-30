@@ -1,0 +1,6 @@
+case_id,issue_type,expected_decision,description
+CASE-001,INBOUND_DOUBLE_COUNT,FLAG_FOR_REVIEW,Synthetic isolated test case; not applied to baseline tables
+CASE-002,UNAPPROVED_SUBSTITUTE,FLAG_FOR_REVIEW,Synthetic isolated test case; not applied to baseline tables
+CASE-003,SUPPLIER_CAPACITY_EXCEEDED,FLAG_FOR_REVIEW,Synthetic isolated test case; not applied to baseline tables
+CASE-004,LEAD_TIME_IGNORED,FLAG_FOR_REVIEW,Synthetic isolated test case; not applied to baseline tables
+CASE-005,UOM_MISMATCH,FLAG_FOR_REVIEW,Synthetic isolated test case; not applied to baseline tables
