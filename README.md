@@ -181,3 +181,18 @@ The project should be reviewed and tested before submission.
 
 https://github.com/nikithaakula1998-max/yottaflex-supply-shortage-planner
 
+
+## Supplier Constraint Experiment
+
+A controlled negative test was performed using a separate copy of the generated dataset.
+
+- Baseline purchase order quantity: 72 units.
+- Modified test purchase order quantity: 1,000,000 units.
+- Purchase orders checked: 100.
+- Validation issues detected: 1.
+- Planning rows evaluated: 1,200.
+- Planning rows with changed projected balances: 5.
+
+The infeasible purchase order was excluded from the feasible supply calculation. For SKU-000025 at LOC-0004, the projected balance in week 2026W04 changed from 999,944 units to -56 units, revealing a shortage of 56 units.
+
+This experiment demonstrates supplier constraint detection and its effect on shortage calculations. It does not establish full production feasibility or end-to-end planning at the challenge's target scale.
