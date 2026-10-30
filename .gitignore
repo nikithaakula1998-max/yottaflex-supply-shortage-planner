@@ -218,3 +218,16 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# Generated datasets
+outputs/
+
+# Local backup files
+src/main_backup.py
+src/main_before_scaling.py
+README.github-backup.md
+README.project.md
+README.starter-backup.md
+
+# Python temporary files
+__pycache__/
+*.pyc
