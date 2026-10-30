@@ -256,19 +256,139 @@ class ProductionFeasibilityTests(unittest.TestCase):
 
             self.assertEqual(len(report), 3)
 
-            # Week 1: delivery has not arrived.
+            # Week 1: components have not arrived yet.
             self.assertEqual(
                 float(report[0]["feasible_quantity"]), 0
             )
 
-            # Week 2: ten components support five finished units.
+            # Week 2: delivery supports five finished units.
             self.assertEqual(
                 float(report[1]["feasible_quantity"]), 5
             )
 
-            # Week 3: components were already consumed.
+            # Week 3: delivered stock has already been consumed.
             self.assertEqual(
                 float(report[2]["feasible_quantity"]), 0
+            )
+
+    def test_shared_weekly_factory_capacity(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            folder = Path(temporary)
+
+            self.write_csv(
+                folder,
+                "inventory.csv",
+                ["sku_id", "location_id", "on_hand"],
+                [
+                    {
+                        "sku_id": "COMP-001",
+                        "location_id": "LOC-001",
+                        "on_hand": "500",
+                    }
+                ],
+            )
+
+            self.write_csv(
+                folder,
+                "bom.csv",
+                [
+                    "parent_sku_id",
+                    "component_sku_id",
+                    "quantity_per_unit",
+                    "status",
+                ],
+                [
+                    {
+                        "parent_sku_id": "PRODUCT-001",
+                        "component_sku_id": "COMP-001",
+                        "quantity_per_unit": "1",
+                        "status": "ACTIVE",
+                    }
+                ],
+            )
+
+            self.write_csv(
+                folder,
+                "production_plan.csv",
+                [
+                    "production_id",
+                    "sku_id",
+                    "location_id",
+                    "week",
+                    "planned_quantity",
+                ],
+                [
+                    {
+                        "production_id": "PROD-001",
+                        "sku_id": "PRODUCT-001",
+                        "location_id": "LOC-001",
+                        "week": "2026W01",
+                        "planned_quantity": "70",
+                    },
+                    {
+                        "production_id": "PROD-002",
+                        "sku_id": "PRODUCT-001",
+                        "location_id": "LOC-001",
+                        "week": "2026W01",
+                        "planned_quantity": "70",
+                    },
+                ],
+            )
+
+            self.write_csv(
+                folder,
+                "production_capacity.csv",
+                [
+                    "location_id",
+                    "week",
+                    "max_production_units",
+                ],
+                [
+                    {
+                        "location_id": "LOC-001",
+                        "week": "2026W01",
+                        "max_production_units": "100",
+                    }
+                ],
+            )
+
+            validate_cumulative_bom(folder)
+            report = self.read_report(folder)
+
+            self.assertEqual(len(report), 2)
+
+            # First order uses 70 of the 100 available units.
+            self.assertEqual(
+                float(report[0]["feasible_quantity"]), 70
+            )
+
+            # Second order can use only the remaining 30.
+            self.assertEqual(
+                float(report[1]["feasible_quantity"]), 30
+            )
+
+            self.assertEqual(
+                report[1]["status"], "PARTIALLY_FEASIBLE"
+            )
+
+            total_feasible = sum(
+                float(row["feasible_quantity"]) for row in report
+            )
+
+            self.assertEqual(total_feasible, 100)
+
+            total_planned = sum(
+                float(row["planned_quantity"]) for row in report
+            )
+            total_unfulfilled = sum(
+                float(row["unfulfilled_quantity"]) for row in report
+            )
+
+            self.assertEqual(total_planned, 140)
+            self.assertEqual(total_unfulfilled, 40)
+            self.assertEqual(
+                total_planned,
+                total_feasible + total_unfulfilled,
             )
 
 
